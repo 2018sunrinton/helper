@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -15,9 +16,20 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -70,26 +82,53 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMinZoomPreference(10);
 
-        NetworkHelper.getInstance().earth(gpsInfo.getLatitude() + "", gpsInfo.getLongitude() + "").enqueue(new Callback<List<Data>>() {
+        Log.e("Sdf", gpsInfo.getLatitude() + "");
+        NetworkHelper.getInstance().earth(gpsInfo.getLatitude() + "", gpsInfo.getLongitude() + "").enqueue(new Callback<JSONObject>() {
             @Override
-            public void onResponse(Call<List<Data>> call, Response<List<Data>> response) {
-                for (int i = 0; i < response.body().size(); i++) {
-                    mMarker = mMap.addMarker(new MarkerOptions()
-                            .title(response.body().get(i).getName())
-                            .snippet("this is snippet")
-                            .position(new LatLng(Double.parseDouble(response.body().get(i).getLat()), Double.parseDouble(response.body().get(i).getLng()))));
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(response.body().get(i).getLat()), Double.parseDouble(response.body().get(i).getLng())), 17.0f));
+            public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
+
+
+                JSONParser parser = new JSONParser();
+
+                try {
+                    JSONObject obj = (JSONObject) parser.parse(String.valueOf(response.body()));
+                    JSONArray array = (JSONArray) obj.get("result");
+                    for (int i = 0; i < array.size(); i++) {
+                        JSONObject arr = (JSONObject) array.get(i);
+                        Double lat = (Double) arr.get("lat");
+                        Double lng = (Double) arr.get("lng");
+                        String name = (String) arr.get("name");
+
+                        Log.e("lat : ", String.valueOf(lat));
+                        Log.e("lng : ", String.valueOf(lng));
+                        Log.e("name : ", String.valueOf(name));
+
+                        mMarker = mMap.addMarker(new MarkerOptions()
+                                .title(name)
+                                .snippet("this is snippet")
+                                .position(new LatLng(lat,lng)));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat,lng), 17.0f));
+
+
+                    }
+
+                } catch (ParseException e) {
+                    e.printStackTrace();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<Data>> call, Throwable t) {
+            public void onFailure(Call<JSONObject> call, Throwable t) {
 
             }
+
+
         });
+        setLocation();
 
     }
-    public void setLocation () {
+
+    public void setLocation() {
         boolean isSuccess = false;
         if (gpsInfo.isGetLocation()) {
             if (!(gpsInfo.getLatitude() == 0 && gpsInfo.getLongitude() == 0)) {

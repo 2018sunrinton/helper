@@ -16,16 +16,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     final int PERMISSIONS_REQUEST = 100;
-
+    Marker mMarker;
     private GoogleMap mMap;
     private GpsInfo gpsInfo;
-    Marker mMarker;
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.main_map);
         mapFragment.getMapAsync(this);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
         }
     }
+
     @Override
     protected void onDestroy() {
         gpsInfo.stopUsingGPS();
@@ -66,29 +70,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMinZoomPreference(10);
 
-        setLocation();
-    }
-    public void setLocation() {
-        boolean isSuccess = false;
-        if (gpsInfo.isGetLocation()) {
-            if (!(gpsInfo.getLatitude() == 0 && gpsInfo.getLongitude() == 0)) {
-                isSuccess = true;
+        NetworkHelper.getInstance().earth().enqueue(new Callback<List<Data>>() {
+            @Override
+            public void onResponse(Call<List<Data>> call, Response<List<Data>> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<List<Data>> call, Throwable t) {
+
+            }
+        });
+        public void setLocation () {
+            boolean isSuccess = false;
+            if (gpsInfo.isGetLocation()) {
+                if (!(gpsInfo.getLatitude() == 0 && gpsInfo.getLongitude() == 0)) {
+                    isSuccess = true;
+                }
+            }
+            if (isSuccess) {
+                mMarker = mMap.addMarker(new MarkerOptions()
+                        .title("this is title")
+                        .snippet("this is snippet")
+                        .position(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()))
+                );
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()), 17.0f));
+            } else {
+                Toast.makeText(this, "자신의 위치 불러오기 실패", Toast.LENGTH_SHORT).show();
             }
         }
-        if (isSuccess) {
-            mMarker = mMap.addMarker(new MarkerOptions()
-                    .title("this is title")
-                    .snippet("this is snippet")
-                    .position(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()))
-            );
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()), 17.0f));
-        } else {
-            Toast.makeText(this, "자신의 위치 불러오기 실패", Toast.LENGTH_SHORT).show();
+
+        @Override
+        public void onPointerCaptureChanged ( boolean hasCapture){
+
         }
     }
-
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
-}

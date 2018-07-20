@@ -1,6 +1,5 @@
 package com.example.kmj.sunrinton2018;
 
-import java.net.NetworkInterface;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -12,14 +11,14 @@ public class NetworkHelper
 
     private static Retrofit retrofit;
 
-    public static NetworkInterface getInstance() {
+    public static API getInstance() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .baseUrl(url + ":" + port)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
-        return retrofit.create(NetworkInterface.class);
+        return retrofit.create(API.class);
     }
 
 }

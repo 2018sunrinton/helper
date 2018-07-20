@@ -70,10 +70,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mMap.setMinZoomPreference(10);
 
-        NetworkHelper.getInstance().earth().enqueue(new Callback<List<Data>>() {
+        NetworkHelper.getInstance().earth(gpsInfo.getLatitude() + "", gpsInfo.getLongitude() + "").enqueue(new Callback<List<Data>>() {
             @Override
             public void onResponse(Call<List<Data>> call, Response<List<Data>> response) {
-
+                for (int i = 0; i < response.body().size(); i++) {
+                    mMarker = mMap.addMarker(new MarkerOptions()
+                            .title(response.body().get(i).getName())
+                            .snippet("this is snippet")
+                            .position(new LatLng(Double.parseDouble(response.body().get(i).getLat()), Double.parseDouble(response.body().get(i).getLng()))));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(response.body().get(i).getLat()), Double.parseDouble(response.body().get(i).getLng())), 17.0f));
+                }
             }
 
             @Override
@@ -81,27 +87,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
-        public void setLocation () {
-            boolean isSuccess = false;
-            if (gpsInfo.isGetLocation()) {
-                if (!(gpsInfo.getLatitude() == 0 && gpsInfo.getLongitude() == 0)) {
-                    isSuccess = true;
-                }
-            }
-            if (isSuccess) {
-                mMarker = mMap.addMarker(new MarkerOptions()
-                        .title("this is title")
-                        .snippet("this is snippet")
-                        .position(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()))
-                );
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()), 17.0f));
-            } else {
-                Toast.makeText(this, "자신의 위치 불러오기 실패", Toast.LENGTH_SHORT).show();
+
+    }
+    public void setLocation () {
+        boolean isSuccess = false;
+        if (gpsInfo.isGetLocation()) {
+            if (!(gpsInfo.getLatitude() == 0 && gpsInfo.getLongitude() == 0)) {
+                isSuccess = true;
             }
         }
-
-        @Override
-        public void onPointerCaptureChanged ( boolean hasCapture){
-
+        if (isSuccess) {
+            mMarker = mMap.addMarker(new MarkerOptions()
+                    .title("this is title")
+                    .snippet("this is snippet")
+                    .position(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()))
+            );
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(gpsInfo.getLatitude(), gpsInfo.getLongitude()), 17.0f));
+        } else {
+            Toast.makeText(this, "자신의 위치 불러오기 실패", Toast.LENGTH_SHORT).show();
         }
     }
+}
+

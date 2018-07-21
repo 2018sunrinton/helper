@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setMinZoomPreference(10);
 
         Log.e("Sdf", gpsInfo.getLatitude() + "");
-        NetworkHelper.getInstance().earth(gpsInfo.getLatitude() + "", gpsInfo.getLongitude() + "").enqueue(new Callback<JSONObject>() {
+        NetworkHelper.getInsgtance().earth(gpsInfo.getLatitude() + "", gpsInfo.getLongitude() + "").enqueue(new Callback<JSONObject>() {
             @Override
             public void onResponse(Call<JSONObject> call, Response<JSONObject> response) {
 
@@ -107,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 .title(name)
                                 .snippet("this is snippet")
                                 .position(new LatLng(lat,lng)));
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat,lng), 17.0f));
 
 
                     }
